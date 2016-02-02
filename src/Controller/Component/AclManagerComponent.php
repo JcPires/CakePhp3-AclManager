@@ -485,12 +485,46 @@ class AclManagerComponent extends Component
     public function getFormActions()
     {
         $controllers = $this->__getControllers();
+        $plugins = $this->__getPluginsControllers();
+        /*foreach ( $plugins as $k => $v ) {
+            array_push($controllers, $v);
+        }
+
+        debug($controllers);
+        die();*/
+        $controllers = $this->setControllersArray($controllers, false);
+        $plugins = $this->setControllersArray($plugins, true);
+        $resources = [];
+        foreach ($plugins as $controller) {
+            array_push($resources, $controller);
+        }
+        foreach ($controllers as $controller) {
+            array_push($resources, $controller);
+        }
+        return $resources;
+    }
+
+
+    private function setControllersArray($controllers, $plugin = false)
+    {
         $resources = [];
         foreach ($controllers as $controller) {
-            $actions = $this->__getActions($controller);
-            $excluded = $this->__getExcludeProperty($controller);
+            if ( $plugin ) {
+                $actions = $this->__getPluginsActions($controller);
+                $excluded = $this->__getExcludeProperty($controller, true);
+            } else {
+                $actions = $this->__getActions($controller);
+                $excluded = $this->__getExcludeProperty($controller);
+            }
+
             if (is_array($excluded)) {
-                $controllerName = str_replace("\\", "/", $controller);
+                if ( $plugin ) {
+                    $controllerName = str_replace("\\", "/", $controller);
+                    $controllerName = "App/".$controllerName;
+                } else {
+                    $controllerName = str_replace("\\", "/", $controller);
+                }
+
                 foreach ($excluded as $excl) {
                     if (in_array($excl, $actions[$controllerName])) {
                         foreach ($actions[$controllerName] as $k => $action) {
@@ -505,7 +539,6 @@ class AclManagerComponent extends Component
         }
         return $resources;
     }
-
     /**
      * Get all exclude actions from public static AclActionsExclude var in controller
      *
@@ -513,9 +546,13 @@ class AclManagerComponent extends Component
      *
      * @return bool|mixed
      */
-    private function __getExcludeProperty($controllerName)
+    private function __getExcludeProperty($controllerName, $plugin = false)
     {
-        $className = 'App\\Controller\\' . $controllerName . 'Controller';
+        if ( $plugin ) {
+            $className = $controllerName . 'Controller';
+        } else {
+            $className = 'App\\Controller\\' . $controllerName . 'Controller';
+        }
         try {
             $prop = new \ReflectionProperty($className, 'AclActionsExclude');
             $ExcludeProperty = $prop->getValue('AclActionsExclude');

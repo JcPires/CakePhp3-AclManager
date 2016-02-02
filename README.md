@@ -32,7 +32,7 @@ First you need to build your acos, to do, you need to add this lines where you w
     ```
         use JcPires\AclManager\Event\PermissionsEditor;
     ```
-    
+
     ```
         $this->eventManager()->on(new PermissionsEditor());
         $acosBuilder = new Event('Permissions.buildAcos', $this);
@@ -92,9 +92,9 @@ Add basics permissions, on your action add
     ```
 
     If you to exclude some actions for the form like ajax actions, you have to add a static property
-    
+
     On the specified controller like PostController or BlogController, ...:
-    
+
     ```
         public static $AclActionsExclude = [
             'action1',
@@ -102,9 +102,9 @@ Add basics permissions, on your action add
             '...'
         ];
     ```
-    
+
     You will have an array with all acos's alias indexed by the controller aco path like:
-    
+
     ```
         'Blog' => [
             'add',
@@ -125,35 +125,38 @@ Add basics permissions, on your action add
 
 2.    Build your form
 
-    First if you want to use the AclManager Helper 
-    
+    First if you want to use the AclManager Helper
+
     ```
         public $helpers = [            
                 'AclManager' => [
                             'className' => 'JcPires/AclManager.AclManager'
                         ]
             ];
+
+        // on your action in your controllerPath
+        $EditablePerms = $this->AclManager->getFormActions();
     ```
-    
+
     an exemple with an Acl helper for checking if permissions are allowed or denied:
-    
+
     ```
-        <?php foreach ($EditablePerms as $Acos) :?>
-            <?php foreach ($Acos as $controllerPath => $actions) :?>
-                <?php if (!empty($actions)) :?>
-                    <h4><?= $controllerPath ;?></h4>
-                    <?php foreach ($actions as $action) :?>
-                        <?php ($this->AclManager->checkGroup($group, 'App/'.$controllerPath.'/'.$action)) ? $val = 1 : $val = 0 ?>
-                        <?= $this->Form->label('App/'.$controllerPath.'/'.$action, $action);?>
-                        <?= $this->Form->select('App/'.$controllerPath.'/'.$action, [0 => 'No', 1 => 'Yes'], ['value' => $val]) ;?>
-                    <?php endforeach ;?>
-                <?php endif;?>
-            <?php endforeach ;?>
+    <?php foreach ($EditablePerms as $Acos) :?>
+        <?php foreach ($Acos as $controllerPath => $actions) :?>
+            <?php if (!empty($actions)) :?>
+                <h4><?= $controllerPath ;?></h4>
+                <?php foreach ($actions as $action) :?>
+                    <?php ($this->AclManager->checkGroup($group, $controllerPath.'/'.$action)) ? $val = 1 : $val = 0 ?>
+                    <?= $this->Form->label($controllerPath.'/'.$action, $action);?>
+                    <?= $this->Form->select($controllerPath.'/'.$action, [0 => 'No', 1 => 'Yes'], ['value' => $val]) ;?>
+                <?php endforeach ;?>
+            <?php endif;?>
         <?php endforeach ;?>
+    <?php endforeach ;?>
     ```
-    
+
     render:
-    
+
     ```
         <select name="App/Blog/add">
             <option value="0">No</option>
@@ -166,9 +169,9 @@ If you don't use the Array Builder you need to specified your input name like ac
 3.   Update new permissions
 
     ```
-    
+
         if ($this->request->is('post')) {
-    
+
             $this->eventManager()->on(new PermissionsEditor());
             $perms = new Event('Permissions.editPerms', $this, [
                 'Aro' => $group,
@@ -176,11 +179,11 @@ If you don't use the Array Builder you need to specified your input name like ac
             ]);
             $this->eventManager()->dispatch($perms);
         }
-        
+
     ```
-    
+
     data need to be like this 'aco path' => value "0 deny / 1 allow"
-    
+
     ```
         'App/Blog/add' => 0
         'App/Blog/edit' => 1
