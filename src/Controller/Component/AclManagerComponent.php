@@ -289,6 +289,7 @@ class AclManagerComponent extends Component
             $controller = str_replace(App::path('Controller'), '', $file);
             $controller = explode('.', $controller)[0];
             $controller = str_replace('Controller', '', $controller);
+            $controller = str_replace(DS, '\\', $controller);
             array_push($results, $controller);
 
         }
